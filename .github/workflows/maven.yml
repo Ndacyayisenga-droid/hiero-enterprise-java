@@ -32,11 +32,10 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: hiero-ledger/hiero-solo-action@v0.10.0
+        uses: hiero-ledger/hiero-solo-action@v0.2
         with:
           installMirrorNode: true
-          hieroVersion: v0.63.7
-
+          
       - name: Build with Maven
         env:
           spring_profiles_active: solo
