@@ -49,9 +49,12 @@ jobs:
           cache: maven
 
       - name: Install PNPM
-        uses: step-security/action-setup@598c7206e1c7d361165e303487aa7772566a8e05 # v4.1.0
+        uses: pnpm/action-setup@v4
         with:
           version: 9.15.5
+          dest: ~/setup-pnpm
+          package_json_file: package.json
+          standalone: false
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
