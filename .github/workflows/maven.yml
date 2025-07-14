@@ -63,6 +63,14 @@ jobs:
           always-auth: false
           check-latest: false
 
+      - name: Install Hedera Local Node Dependencies
+        run: |
+          # Create a minimal package.json if it doesn't exist
+          if [ ! -f package.json ]; then
+            echo '{"name": "hedera-local-setup", "version": "1.0.0", "dependencies": {"@hashgraph/hedera-local": "0.63.7"}}' > package.json
+          fi
+          pnpm install
+
       - name: Create env file
         run: |
           touch .env
@@ -71,12 +79,38 @@ jobs:
           echo HEDERA_NETWORK="local-node" >> .env
           cat .env
 
+      - name: Configure local node settings
+        run: |
+          # Create a configuration file for local-node network settings
+          mkdir -p src/test/resources
+          cat << EOF > src/test/resources/hedera-networks.json
+          {
+            "local-node": {
+              "nodes": {
+                "0.0.3": "127.0.0.1:50211"
+              }
+            }
+          }
+          EOF
+          cat src/test/resources/hedera-networks.json
+
       - name: Start the local node
         id: start-local-node
         run: |
           ${{ env.CG_EXEC }} npx @hashgraph/hedera-local start -d --network local --balance=100000 --network-tag=0.63.7
           # Wait for the network to fully start
           sleep 30
+
+      - name: Verify local node
+        run: |
+          # Check if the local node is accessible on port 50211
+          timeout 10s bash -c "until nc -z 127.0.0.1 50211; do echo 'Waiting for local node...'; sleep 1; done"
+          if [ $? -eq 0 ]; then
+            echo "Local node is up and running."
+          else
+            echo "Error: Local node failed to start or is not accessible on 127.0.0.1:50211."
+            exit 1
+          fi
 
       - name: Build with Maven
         env:
