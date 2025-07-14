@@ -15,31 +15,13 @@ on:
   pull_request:
     branches: [ "main" ]
 
-defaults:
-  run:
-    shell: bash
-
-permissions:
-  contents: read
-  pull-requests: write
-
-env:
-  CG_EXEC: ionice -c 2 -n 2 nice -n 19
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@6c439dc8bdf85cadbbce9ed30d1c7b959517bc49 # v2.12.2
-        with:
-          egress-policy: audit
-
       - name: Checkout Repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          submodules: recursive
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -48,85 +30,16 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Install PNPM
-        uses: pnpm/action-setup@v4
+      - name: Prepare Hedera Solo
+        id: solo
+        uses: OpenElements/hedera-solo-action@v0.3
         with:
-          version: 9.15.5
-          dest: ~/setup-pnpm
-          package_json_file: package.json
-          standalone: false
-
-      - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '20'
-          always-auth: false
-          check-latest: false
-
-      - name: Install Hedera Local Node Dependencies
-        run: |
-          # Create a minimal package.json if it doesn't exist
-          if [ ! -f package.json ]; then
-            echo '{"name": "hedera-local-setup", "version": "1.0.0", "dependencies": {"@hashgraph/hedera-local": "2.37.1"}}' > package.json
-          fi
-          pnpm install
-
-      - name: Create env file
-        run: |
-          touch .env
-          echo OPERATOR_KEY="0xa608e2130a0a3cb34f86e757303c862bee353d9ab77ba4387ec084f881d420d4" >> .env
-          echo OPERATOR_ID="0.0.1022" >> .env
-          echo HEDERA_NETWORK="local-node" >> .env
-          cat .env
-
-      - name: Configure local node settings
-        run: |
-          # Create a configuration file for local-node network settings
-          mkdir -p src/test/resources
-          cat << EOF > src/test/resources/hedera-networks.json
-          {
-            "local-node": {
-              "nodes": {
-                "0.0.3": "127.0.0.1:50211"
-              }
-            }
-          }
-          EOF
-          cat src/test/resources/hedera-networks.json
-
-      - name: Start the local node
-        id: start-local-node
-        run: |
-          ${{ env.CG_EXEC }} npx @hashgraph/hedera-local start -d --network local --balance=100000
-          # Wait for the network to fully start
-          sleep 30
-
-      - name: Verify local node
-        run: |
-          # Check if the local node is accessible on port 50211
-          timeout 10s bash -c "until nc -z 127.0.0.1 50211; do echo 'Waiting for local node...'; sleep 1; done"
-          if [ $? -eq 0 ]; then
-            echo "Local node is up and running."
-          else
-            echo "Error: Local node failed to start or is not accessible on 127.0.0.1:50211."
-            exit 1
-          fi
-
-      - name: Log environment variables
-        run: |
-          echo "HEDERA_ACCOUNT_ID: $HEDERA_ACCOUNT_ID"
-          echo "HEDERA_PRIVATE_KEY: $HEDERA_PRIVATE_KEY"
-          echo "HEDERA_NETWORK: $HEDERA_NETWORK"
+          installMirrorNode: true
 
       - name: Build with Maven
         env:
-          spring_profiles_active: local-node
-          HEDERA_ACCOUNT_ID: "0.0.1022"
-          HEDERA_PRIVATE_KEY: "0xa608e2130a0a3cb34f86e757303c862bee353d9ab77ba4387ec084f881d420d4"
-          HEDERA_NETWORK: local-node
-        run: ./mvnw verify -e -X
-
-      - name: Stop the local node
-        id: stop-local-node
-        if: ${{ steps.start-local-node.conclusion == 'success' && !cancelled() && always() }}
-        run: ${{ env.CG_EXEC }} npx @hashgraph/hedera-local stop
+          spring_profiles_active: solo
+          HEDERA_ACCOUNT_ID: ${{ steps.solo.outputs.accountId }}
+          HEDERA_PRIVATE_KEY: ${{ steps.solo.outputs.privateKey }}
+          HEDERA_NETWORK: hiero-solo-action
+        run: ./mvnw verify
