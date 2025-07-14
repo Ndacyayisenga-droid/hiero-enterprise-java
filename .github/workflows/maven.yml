@@ -74,8 +74,8 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          echo OPERATOR_KEY="${{ secrets.HEDERA_PRIVATE_KEY }}" >> .env
-          echo OPERATOR_ID="${{ secrets.HEDERA_ACCOUNT_ID }}" >> .env
+          echo OPERATOR_KEY="0xa608e2130a0a3cb34f86e757303c862bee353d9ab77ba4387ec084f881d420d4" >> .env
+          echo OPERATOR_ID="0.0.1022" >> .env
           echo HEDERA_NETWORK="local-node" >> .env
           cat .env
 
@@ -112,13 +112,19 @@ jobs:
             exit 1
           fi
 
+      - name: Log environment variables
+        run: |
+          echo "HEDERA_ACCOUNT_ID: $HEDERA_ACCOUNT_ID"
+          echo "HEDERA_PRIVATE_KEY: $HEDERA_PRIVATE_KEY"
+          echo "HEDERA_NETWORK: $HEDERA_NETWORK"
+
       - name: Build with Maven
         env:
           spring_profiles_active: local-node
-          HEDERA_ACCOUNT_ID: "${{ secrets.HEDERA_ACCOUNT_ID }}"
-          HEDERA_PRIVATE_KEY: "${{ secrets.HEDERA_PRIVATE_KEY }}"
+          HEDERA_ACCOUNT_ID: "0.0.1022"
+          HEDERA_PRIVATE_KEY: "0xa608e2130a0a3cb34f86e757303c862bee353d9ab77ba4387ec084f881d420d4"
           HEDERA_NETWORK: local-node
-        run: ./mvnw verify
+        run: ./mvnw verify -e -X
 
       - name: Stop the local node
         id: stop-local-node
