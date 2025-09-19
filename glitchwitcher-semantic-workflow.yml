@@ -99,23 +99,23 @@ jobs:
             failed_downloads+=("extract_semantic_dataset.sh")
           fi
           
-          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/analyze_java_file.py" "analyze_java_file.py"; then
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/analyze_java_file.py" "analyze_java_file.py"; then
             failed_downloads+=("analyze_java_file.py")
           fi
           
-          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/compare_semantic_predictions.py" "compare_semantic_predictions.py"; then
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/compare_semantic_predictions.py" "compare_semantic_predictions.py"; then
             failed_downloads+=("compare_semantic_predictions.py")
           fi
           
-          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/train_semantic_model.py" "train_semantic_model.py"; then
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/train_semantic_model.py" "train_semantic_model.py"; then
             failed_downloads+=("train_semantic_model.py")
           fi
           
-          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/train_semantic_model_safe.py" "train_semantic_model_safe.py"; then
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/autoencoder_tf2.py" "train_semantic_model_safe.py"; then
             failed_downloads+=("train_semantic_model_safe.py")
           fi
           
-          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/load_semantic_model.py" "load_semantic_model.py"; then
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/load_semantic_model.py" "load_semantic_model.py"; then
             failed_downloads+=("load_semantic_model.py")
           fi
           
