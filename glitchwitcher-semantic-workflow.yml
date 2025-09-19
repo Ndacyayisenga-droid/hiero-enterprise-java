@@ -77,16 +77,64 @@ jobs:
       - name: Download Scripts from External Repository
         run: |
           echo "Downloading semantic analysis scripts from external repository..."
-          # Download shell scripts
-          curl -L -o extract_semantic_dataset.sh "https://raw.githubusercontent.com/adoptium/aqa-triage-data/refs/heads/main/GlitchWitcher/Semantic%20Dataset/extract_semantic_dataset.sh"
-          curl -L -o analyze_java_file.py "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/analyze_java_file.py"
-          curl -L -o compare_semantic_predictions.py "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/compare_semantic_predictions.py"
-          curl -L -o train_semantic_model.py "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/train_semantic_model.py"
-          curl -L -o train_semantic_model_safe.py "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/train_semantic_model_safe.py"
-          curl -L -o load_semantic_model.py "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/load_semantic_model.py"
+          
+          # Function to download with error handling
+          download_script() {
+            local url="$1"
+            local filename="$2"
+            echo "Downloading $filename from $url"
+            if curl -L -f -o "$filename" "$url"; then
+              echo "✅ Successfully downloaded $filename"
+              return 0
+            else
+              echo "❌ Failed to download $filename from $url"
+              return 1
+            fi
+          }
+          
+          # Download scripts with error handling
+          failed_downloads=()
+          
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-triage-data/refs/heads/main/GlitchWitcher/Semantic%20Dataset/extract_semantic_dataset.sh" "extract_semantic_dataset.sh"; then
+            failed_downloads+=("extract_semantic_dataset.sh")
+          fi
+          
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/analyze_java_file.py" "analyze_java_file.py"; then
+            failed_downloads+=("analyze_java_file.py")
+          fi
+          
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/compare_semantic_predictions.py" "compare_semantic_predictions.py"; then
+            failed_downloads+=("compare_semantic_predictions.py")
+          fi
+          
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/train_semantic_model.py" "train_semantic_model.py"; then
+            failed_downloads+=("train_semantic_model.py")
+          fi
+          
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/train_semantic_model_safe.py" "train_semantic_model_safe.py"; then
+            failed_downloads+=("train_semantic_model_safe.py")
+          fi
+          
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/Semantic/load_semantic_model.py" "load_semantic_model.py"; then
+            failed_downloads+=("load_semantic_model.py")
+          fi
+          
+          # Check for failed downloads
+          if [ ${#failed_downloads[@]} -gt 0 ]; then
+            echo "❌ Failed to download the following scripts:"
+            printf '%s\n' "${failed_downloads[@]}"
+            echo "Please check the URLs and repository structure."
+            exit 1
+          fi
           
           # Make shell scripts executable
-          chmod +x extract_semantic_dataset.sh
+          if [ -f "extract_semantic_dataset.sh" ]; then
+            chmod +x extract_semantic_dataset.sh
+            echo "✅ Made extract_semantic_dataset.sh executable"
+          else
+            echo "❌ extract_semantic_dataset.sh not found after download"
+            exit 1
+          fi
           
           # Verify downloads
           echo "Verifying downloaded files..."
@@ -173,8 +221,17 @@ jobs:
           # Generate dataset if missing
           if [ "${{ steps.check-dataset.outputs.dataset_exists }}" = "false" ]; then
             echo "Generating dataset..."
+            # Verify the script exists and is executable
+            if [ ! -f "extract_semantic_dataset.sh" ]; then
+              echo "❌ ERROR: extract_semantic_dataset.sh not found!"
+              echo "Available files:"
+              ls -la *.sh *.py 2>/dev/null || echo "No .sh or .py files found"
+              exit 1
+            fi
+            
             # Make the script executable and run it
             chmod +x extract_semantic_dataset.sh
+            echo "Running extract_semantic_dataset.sh with URL: ${{ steps.parse-command.outputs.repo_url }}"
             ./extract_semantic_dataset.sh "${{ steps.parse-command.outputs.repo_url }}"
             
             # Find the generated CSV file
