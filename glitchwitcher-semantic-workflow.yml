@@ -117,7 +117,11 @@ jobs:
             failed_downloads+=("train_semantic_model.py")
           fi
           
-          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/autoencoder_tf2.py" "train_semantic_model_safe.py"; then
+          if ! download_script "https://raw.githubusercontent.com/adoptium/aqa-test-tools/refs/heads/master/BugPredict/GlitchWitcher/autoencoder_tf2.py" "autoencoder_tf2.py"; then
+            failed_downloads+=("autoencoder_tf2.py")
+          fi
+          
+          if ! download_script "https://raw.githubusercontent.com/Ndacyayisenga-droid/REPD-FORK/refs/heads/master/train_semantic_model_safe.py" "train_semantic_model_safe.py"; then
             failed_downloads+=("train_semantic_model_safe.py")
           fi
           
