@@ -74,6 +74,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cloc git openjdk-11-jdk
 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Download Scripts from External Repository
         run: |
           echo "Downloading semantic analysis scripts from external repository..."
@@ -140,12 +146,6 @@ jobs:
           echo "Verifying downloaded files..."
           ls -la *.py *.sh
           echo "✅ All scripts downloaded successfully"
-
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Repository
         run: |
