@@ -18,7 +18,7 @@ public record Contract(
         int autoRenewPeriod,
         @NonNull Instant createdTimestamp,
         @Nullable String fileId,
-        @Nullable PublicKey memo,
+        @Nullable String memo,
         @Nullable String proxyAccountId,
         @Nullable PublicKey proxyAccountIdKey,
         @Nullable String runtimeBytecode,

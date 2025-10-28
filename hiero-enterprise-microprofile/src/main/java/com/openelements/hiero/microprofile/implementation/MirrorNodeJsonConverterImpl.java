@@ -1,6 +1,7 @@
 package com.openelements.hiero.microprofile.implementation;
 
 import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.ContractId;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TokenSupplyType;
 import com.hedera.hashgraph.sdk.TokenType;
@@ -8,12 +9,14 @@ import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.PublicKey;
 import com.openelements.hiero.base.data.AccountInfo;
+import com.openelements.hiero.base.data.Contract;
 import com.openelements.hiero.base.data.ExchangeRate;
 import com.openelements.hiero.base.data.ExchangeRates;
 import com.openelements.hiero.base.data.NetworkFee;
 import com.openelements.hiero.base.data.NetworkStake;
 import com.openelements.hiero.base.data.NetworkSupplies;
 import com.openelements.hiero.base.data.Nft;
+import com.openelements.hiero.base.data.Page;
 import com.openelements.hiero.base.data.TransactionInfo;
 import com.openelements.hiero.base.data.Token;
 import com.openelements.hiero.base.data.TokenInfo;
@@ -604,6 +607,137 @@ public class MirrorNodeJsonConverterImpl implements MirrorNodeJsonConverter<Json
             return Optional.of(new Balance(account, balance, decimals));
         } catch (final Exception e) {
             throw new IllegalStateException("Can not parse JSON: " + jsonObject, e);
+        }
+    }
+
+    // Contract-related methods
+
+    @Override
+    public @NonNull Optional<Contract> toContract(@NonNull JsonObject jsonObject) {
+        Objects.requireNonNull(jsonObject, "jsonObject must not be null");
+        if (jsonObject.isEmpty()) {
+            return Optional.empty();
+        }
+
+        try {
+            final ContractId contractId = ContractId.fromString(jsonObject.getString("contract_id"));
+            final AccountId adminKey = jsonObject.get("admin_key") == null ? null
+                    : AccountId.fromString(jsonObject.getString("admin_key"));
+            final AccountId autoRenewAccount = jsonObject.get("auto_renew_account") == null ? null
+                    : AccountId.fromString(jsonObject.getString("auto_renew_account"));
+            final int autoRenewPeriod = jsonObject.getJsonNumber("auto_renew_period").intValue();
+            final Instant createdTimestamp = Instant.ofEpochSecond(jsonObject.getJsonNumber("created_timestamp").longValue());
+            final String fileId = jsonObject.getString("file_id", null);
+            final String memo = jsonObject.getString("memo", null);
+            final String proxyAccountId = jsonObject.getString("proxy_account_id", null);
+            final PublicKey proxyAccountIdKey = jsonObject.get("proxy_account_id_key") == null ? null
+                    : PublicKey.fromString(jsonObject.getString("proxy_account_id_key"));
+            final String runtimeBytecode = jsonObject.getString("runtime_bytecode", null);
+            final String bytecode = jsonObject.getString("bytecode", null);
+            final String evmAddress = jsonObject.getString("evm_address", null);
+            final String solidityAddress = jsonObject.getString("solidity_address", null);
+            final boolean deleted = jsonObject.getBoolean("deleted", false);
+            final Instant fromTimestamp = Instant.ofEpochSecond(jsonObject.getJsonObject("timestamp").getJsonNumber("from").longValue());
+            final Instant toTimestamp = Instant.ofEpochSecond(jsonObject.getJsonObject("timestamp").getJsonNumber("to").longValue());
+
+            return Optional.of(new Contract(
+                    contractId,
+                    adminKey,
+                    autoRenewAccount,
+                    autoRenewPeriod,
+                    createdTimestamp,
+                    fileId,
+                    memo,
+                    proxyAccountId,
+                    proxyAccountIdKey,
+                    runtimeBytecode,
+                    bytecode,
+                    evmAddress,
+                    solidityAddress,
+                    deleted,
+                    fromTimestamp,
+                    toTimestamp
+            ));
+        } catch (final Exception e) {
+            throw new IllegalStateException("Can not parse JSON: " + jsonObject, e);
+        }
+    }
+
+    @Override
+    public @NonNull Page<Contract> toContractPage(@NonNull JsonObject jsonObject) {
+        Objects.requireNonNull(jsonObject, "jsonObject must not be null");
+        if (jsonObject.isEmpty()) {
+            return new SimplePage<>(List.of());
+        }
+
+        try {
+            final List<Contract> contracts = toContracts(jsonObject);
+            return new SimplePage<>(contracts);
+        } catch (final Exception e) {
+            throw new IllegalStateException("Can not parse JSON: " + jsonObject, e);
+        }
+    }
+
+    @Override
+    public @NonNull List<Contract> toContracts(@NonNull JsonObject jsonObject) {
+        Objects.requireNonNull(jsonObject, "jsonObject must not be null");
+        if (!jsonObject.containsKey("contracts")) {
+            return List.of();
+        }
+        final JsonArray contractsArray = jsonObject.getJsonArray("contracts");
+        if (contractsArray == null) {
+            throw new IllegalArgumentException("Contracts array is not an array: " + contractsArray);
+        }
+        Spliterator<JsonValue> spliterator = Spliterators.spliteratorUnknownSize(contractsArray.iterator(),
+                Spliterator.ORDERED);
+        return StreamSupport.stream(spliterator, false)
+                .map(n -> toContract(n.asJsonObject()))
+                .filter(optional -> optional.isPresent())
+                .map(optional -> optional.get())
+                .toList();
+    }
+
+    // Simple Page implementation for converter methods
+    private static class SimplePage<T> implements Page<T> {
+        private final List<T> data;
+
+        public SimplePage(List<T> data) {
+            this.data = data;
+        }
+
+        @Override
+        public int getPageIndex() {
+            return 0;
+        }
+
+        @Override
+        public int getSize() {
+            return data.size();
+        }
+
+        @Override
+        public List<T> getData() {
+            return data;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public Page<T> next() {
+            throw new IllegalStateException("No next page");
+        }
+
+        @Override
+        public Page<T> first() {
+            return this;
+        }
+
+        @Override
+        public boolean isFirst() {
+            return true;
         }
     }
 }
