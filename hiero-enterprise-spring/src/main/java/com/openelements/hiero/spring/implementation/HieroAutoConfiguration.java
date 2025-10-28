@@ -10,6 +10,7 @@ import com.openelements.hiero.base.TopicClient;
 import com.openelements.hiero.base.config.HieroConfig;
 import com.openelements.hiero.base.implementation.AccountClientImpl;
 import com.openelements.hiero.base.implementation.AccountRepositoryImpl;
+import com.openelements.hiero.base.implementation.ContractRepositoryImpl;
 import com.openelements.hiero.base.implementation.FileClientImpl;
 import com.openelements.hiero.base.implementation.FungibleTokenClientImpl;
 import com.openelements.hiero.base.implementation.NetworkRepositoryImpl;
@@ -23,6 +24,7 @@ import com.openelements.hiero.base.implementation.TopicRepositoryImpl;
 import com.openelements.hiero.base.implementation.TransactionRepositoryImpl;
 import com.openelements.hiero.base.interceptors.ReceiveRecordInterceptor;
 import com.openelements.hiero.base.mirrornode.AccountRepository;
+import com.openelements.hiero.base.mirrornode.ContractRepository;
 import com.openelements.hiero.base.mirrornode.MirrorNodeClient;
 import com.openelements.hiero.base.mirrornode.NetworkRepository;
 import com.openelements.hiero.base.mirrornode.NftRepository;
@@ -143,6 +145,13 @@ public class HieroAutoConfiguration {
             havingValue = "true", matchIfMissing = true)
     NftRepository nftRepository(final MirrorNodeClient mirrorNodeClient) {
         return new NftRepositoryImpl(mirrorNodeClient);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "spring.hiero", name = "mirrorNodeSupported",
+            havingValue = "true", matchIfMissing = true)
+    ContractRepository contractRepository(final MirrorNodeClient mirrorNodeClient) {
+        return new ContractRepositoryImpl(mirrorNodeClient);
     }
 
     @Bean

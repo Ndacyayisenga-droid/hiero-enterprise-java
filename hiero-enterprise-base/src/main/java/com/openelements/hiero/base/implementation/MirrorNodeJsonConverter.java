@@ -1,17 +1,19 @@
 package com.openelements.hiero.base.implementation;
 
 import com.openelements.hiero.base.data.AccountInfo;
+import com.openelements.hiero.base.data.Balance;
+import com.openelements.hiero.base.data.Contract;
 import com.openelements.hiero.base.data.ExchangeRates;
 import com.openelements.hiero.base.data.NetworkFee;
 import com.openelements.hiero.base.data.NetworkStake;
 import com.openelements.hiero.base.data.NetworkSupplies;
 import com.openelements.hiero.base.data.Nft;
-import com.openelements.hiero.base.data.TransactionInfo;
+import com.openelements.hiero.base.data.Page;
 import com.openelements.hiero.base.data.Token;
 import com.openelements.hiero.base.data.TokenInfo;
-import com.openelements.hiero.base.data.Balance;
 import com.openelements.hiero.base.data.Topic;
 import com.openelements.hiero.base.data.TopicMessage;
+import com.openelements.hiero.base.data.TransactionInfo;
 
 import java.util.List;
 import java.util.Optional;
@@ -59,4 +61,15 @@ public interface MirrorNodeJsonConverter<JSON> {
 
     @NonNull
     List<TopicMessage> toTopicMessages(JSON json);
+
+    // Contract-related methods
+
+    @NonNull
+    Optional<Contract> toContract(@NonNull JSON json);
+
+    @NonNull
+    Page<Contract> toContractPage(@NonNull JSON json);
+
+    @NonNull
+    List<Contract> toContracts(@NonNull JSON json);
 }

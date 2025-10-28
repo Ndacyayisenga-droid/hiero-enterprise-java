@@ -1,11 +1,13 @@
 package com.openelements.hiero.base.mirrornode;
 
 import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.ContractId;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.openelements.hiero.base.HieroException;
 import com.openelements.hiero.base.data.AccountInfo;
 import com.openelements.hiero.base.data.Balance;
+import com.openelements.hiero.base.data.Contract;
 import com.openelements.hiero.base.data.ExchangeRates;
 import com.openelements.hiero.base.data.NetworkFee;
 import com.openelements.hiero.base.data.NetworkStake;
@@ -459,4 +461,78 @@ public interface MirrorNodeClient {
 
     @NonNull
     Page<NftMetadata> findAllNftTypes();
+
+    // Contract-related methods
+
+    /**
+     * Queries all contracts.
+     *
+     * @return the contracts
+     * @throws HieroException if an error occurs
+     */
+    @NonNull
+    Page<Contract> queryContracts() throws HieroException;
+
+    /**
+     * Queries a contract by its contract ID.
+     *
+     * @param contractId the contract ID
+     * @return the contract information
+     * @throws HieroException if an error occurs
+     */
+    @NonNull
+    Optional<Contract> queryContractById(@NonNull ContractId contractId) throws HieroException;
+
+    /**
+     * Queries a contract by its contract ID.
+     *
+     * @param contractId the contract ID
+     * @return the contract information
+     * @throws HieroException if an error occurs
+     */
+    @NonNull
+    default Optional<Contract> queryContractById(@NonNull String contractId) throws HieroException {
+        Objects.requireNonNull(contractId, "contractId must not be null");
+        return queryContractById(ContractId.fromString(contractId));
+    }
+
+    /**
+     * Queries contracts by EVM address.
+     *
+     * @param evmAddress the EVM address
+     * @return the contracts
+     * @throws HieroException if an error occurs
+     */
+    @NonNull
+    Page<Contract> queryContractsByEvmAddress(@NonNull String evmAddress) throws HieroException;
+
+    /**
+     * Queries contracts by Solidity address.
+     *
+     * @param solidityAddress the Solidity address
+     * @return the contracts
+     * @throws HieroException if an error occurs
+     */
+    @NonNull
+    Page<Contract> queryContractsBySolidityAddress(@NonNull String solidityAddress) throws HieroException;
+
+    /**
+     * Queries contracts by file ID.
+     *
+     * @param fileId the file ID
+     * @return the contracts
+     * @throws HieroException if an error occurs
+     */
+    @NonNull
+    Page<Contract> queryContractsByFileId(@NonNull String fileId) throws HieroException;
+
+    /**
+     * Queries contracts by proxy account ID.
+     *
+     * @param proxyAccountId the proxy account ID
+     * @return the contracts
+     * @throws HieroException if an error occurs
+     */
+    @NonNull
+    Page<Contract> queryContractsByProxyAccountId(@NonNull String proxyAccountId) throws HieroException;
 }

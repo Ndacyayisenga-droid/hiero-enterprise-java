@@ -2,6 +2,7 @@ package com.openelements.hiero.spring.implementation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.ContractId;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TokenSupplyType;
 import com.hedera.hashgraph.sdk.TokenType;
@@ -9,12 +10,14 @@ import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.PublicKey;
 import com.openelements.hiero.base.data.AccountInfo;
+import com.openelements.hiero.base.data.Contract;
 import com.openelements.hiero.base.data.ExchangeRate;
 import com.openelements.hiero.base.data.ExchangeRates;
 import com.openelements.hiero.base.data.NetworkFee;
 import com.openelements.hiero.base.data.NetworkStake;
 import com.openelements.hiero.base.data.NetworkSupplies;
 import com.openelements.hiero.base.data.Nft;
+import com.openelements.hiero.base.data.Page;
 import com.openelements.hiero.base.data.TransactionInfo;
 import com.openelements.hiero.base.data.Token;
 import com.openelements.hiero.base.data.TokenInfo;
@@ -622,5 +625,136 @@ public class MirrorNodeJsonConverterImpl implements MirrorNodeJsonConverter<Json
         }
         return StreamSupport
                 .stream(Spliterators.spliteratorUnknownSize(node.iterator(), Spliterator.ORDERED), false);
+    }
+
+    // Contract-related methods
+
+    @Override
+    public @NonNull Optional<Contract> toContract(@NonNull JsonNode node) {
+        Objects.requireNonNull(node, "jsonNode must not be null");
+        if (node.isNull() || node.isEmpty()) {
+            return Optional.empty();
+        }
+
+        try {
+            final ContractId contractId = ContractId.fromString(node.get("contract_id").asText());
+            final AccountId adminKey = node.get("admin_key").isNull() ? null
+                    : AccountId.fromString(node.get("admin_key").asText());
+            final AccountId autoRenewAccount = node.get("auto_renew_account").isNull() ? null
+                    : AccountId.fromString(node.get("auto_renew_account").asText());
+            final int autoRenewPeriod = node.get("auto_renew_period").asInt();
+            final Instant createdTimestamp = Instant.ofEpochSecond(node.get("created_timestamp").asLong());
+            final String fileId = node.get("file_id").isNull() ? null : node.get("file_id").asText();
+            final String memo = node.get("memo").isNull() ? null : node.get("memo").asText();
+            final String proxyAccountId = node.get("proxy_account_id").isNull() ? null : node.get("proxy_account_id").asText();
+            final PublicKey proxyAccountIdKey = node.get("proxy_account_id_key").isNull() ? null
+                    : PublicKey.fromString(node.get("proxy_account_id_key").asText());
+            final String runtimeBytecode = node.get("runtime_bytecode").isNull() ? null : node.get("runtime_bytecode").asText();
+            final String bytecode = node.get("bytecode").isNull() ? null : node.get("bytecode").asText();
+            final String evmAddress = node.get("evm_address").isNull() ? null : node.get("evm_address").asText();
+            final String solidityAddress = node.get("solidity_address").isNull() ? null : node.get("solidity_address").asText();
+            final boolean deleted = node.get("deleted").asBoolean();
+            final Instant fromTimestamp = Instant.ofEpochSecond(node.get("timestamp").get("from").asLong());
+            final Instant toTimestamp = Instant.ofEpochSecond(node.get("timestamp").get("to").asLong());
+
+            return Optional.of(new Contract(
+                    contractId,
+                    adminKey,
+                    autoRenewAccount,
+                    autoRenewPeriod,
+                    createdTimestamp,
+                    fileId,
+                    memo,
+                    proxyAccountId,
+                    proxyAccountIdKey,
+                    runtimeBytecode,
+                    bytecode,
+                    evmAddress,
+                    solidityAddress,
+                    deleted,
+                    fromTimestamp,
+                    toTimestamp
+            ));
+        } catch (final Exception e) {
+            throw new JsonParseException(node, e);
+        }
+    }
+
+    @Override
+    public @NonNull Page<Contract> toContractPage(@NonNull JsonNode node) {
+        Objects.requireNonNull(node, "jsonNode must not be null");
+        if (node.isNull() || node.isEmpty()) {
+            return new SimplePage<>(List.of());
+        }
+
+        try {
+            final List<Contract> contracts = toContracts(node);
+            return new SimplePage<>(contracts);
+        } catch (final Exception e) {
+            throw new JsonParseException(node, e);
+        }
+    }
+
+    @Override
+    public @NonNull List<Contract> toContracts(@NonNull JsonNode node) {
+        Objects.requireNonNull(node, "jsonNode must not be null");
+        if (!node.has("contracts")) {
+            return List.of();
+        }
+        final JsonNode contractsNode = node.get("contracts");
+        if (!contractsNode.isArray()) {
+            throw new IllegalArgumentException("Contracts node is not an array: " + contractsNode);
+        }
+        Spliterator<JsonNode> spliterator = Spliterators.spliteratorUnknownSize(contractsNode.iterator(),
+                Spliterator.ORDERED);
+        return StreamSupport.stream(spliterator, false)
+                .map(n -> toContract(n))
+                .filter(optional -> optional.isPresent())
+                .map(optional -> optional.get())
+                .toList();
+    }
+
+    // Simple Page implementation for converter methods
+    private static class SimplePage<T> implements Page<T> {
+        private final List<T> data;
+
+        public SimplePage(List<T> data) {
+            this.data = data;
+        }
+
+        @Override
+        public int getPageIndex() {
+            return 0;
+        }
+
+        @Override
+        public int getSize() {
+            return data.size();
+        }
+
+        @Override
+        public List<T> getData() {
+            return data;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public Page<T> next() {
+            throw new IllegalStateException("No next page");
+        }
+
+        @Override
+        public Page<T> first() {
+            return this;
+        }
+
+        @Override
+        public boolean isFirst() {
+            return true;
+        }
     }
 }
