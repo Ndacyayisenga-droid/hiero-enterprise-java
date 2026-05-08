@@ -40,16 +40,16 @@ jobs:
           installMirrorNode: true
           mirrorNodeVersion: v0.138.0
 
-      # - name: Wait for Mirror Node
-      #   run: |
-      #     echo "Waiting for Mirror Node REST API to be ready on http://localhost:5551..."
-      #     until curl --output /dev/null --silent --head --fail http://localhost:5551/api/v1/network/supply; do
-      #       echo "Mirror Node not ready, waiting..."
-      #       kubectl get svc -n solo
-      #       curl --silent http://localhost:5551/api/v1/network/supply || echo "No response from /api/v1/network/supply"
-      #       sleep 5
-      #     done
-      #     echo "Mirror Node REST API is ready!"
+      - name: Wait for Mirror Node
+        run: |
+          echo "Waiting for Mirror Node REST API to be ready on http://localhost:5551..."
+          until curl --output /dev/null --silent --head --fail http://localhost:5551/api/v1/network/supply; do
+            echo "Mirror Node not ready, waiting..."
+            kubectl get svc -n solo
+            curl --silent http://localhost:5551/api/v1/network/supply || echo "No response from /api/v1/network/supply"
+            sleep 5
+          done
+          echo "Mirror Node REST API is ready!"
 
       - name: Build with Maven
         env:
