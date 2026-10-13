@@ -1125,6 +1125,150 @@ public interface NftClient {
   }
 
   /**
+   * Transfers an NFT on behalf of its owner to another account. The spender must have been granted
+   * an allowance for the NFT by the owner. The spender pays the transaction fee and signs the
+   * transaction.
+   *
+   * @param tokenId the ID of the NFT type
+   * @param serialNumber the serial number of the NFT
+   * @param ownerAccountId the ID of the account that owns the NFT
+   * @param spenderAccountId the ID of the account that is authorized to spend the NFT
+   * @param spenderAccountKey the private key of the spender account
+   * @param toAccountId the ID of the account that should receive the NFT
+   * @throws HieroException if the NFT could not be transferred
+   */
+  void transferApprovedNft(
+      @NonNull TokenId tokenId,
+      long serialNumber,
+      @NonNull AccountId ownerAccountId,
+      @NonNull AccountId spenderAccountId,
+      @NonNull PrivateKey spenderAccountKey,
+      @NonNull AccountId toAccountId)
+      throws HieroException;
+
+  /**
+   * Transfers an NFT on behalf of its owner to another account. The spender must have been granted
+   * an allowance for the NFT by the owner. The spender pays the transaction fee and signs the
+   * transaction.
+   *
+   * @param tokenId the ID of the NFT type
+   * @param serialNumber the serial number of the NFT
+   * @param ownerAccountId the ID of the account that owns the NFT
+   * @param spenderAccount the account that is authorized to spend the NFT
+   * @param toAccountId the ID of the account that should receive the NFT
+   * @throws HieroException if the NFT could not be transferred
+   */
+  default void transferApprovedNft(
+      @NonNull TokenId tokenId,
+      long serialNumber,
+      @NonNull AccountId ownerAccountId,
+      @NonNull Account spenderAccount,
+      @NonNull AccountId toAccountId)
+      throws HieroException {
+    Objects.requireNonNull(spenderAccount, "spenderAccount must not be null");
+    transferApprovedNft(
+        tokenId,
+        serialNumber,
+        ownerAccountId,
+        spenderAccount.accountId(),
+        spenderAccount.privateKey(),
+        toAccountId);
+  }
+
+  /**
+   * Transfers NFTs on behalf of their owner to another account. The spender must have been granted
+   * an allowance for the NFTs by the owner. The spender pays the transaction fee and signs the
+   * transaction. At most 10 NFTs can be transferred in one transaction.
+   *
+   * @param tokenId the ID of the NFT type
+   * @param serialNumbers the serial numbers of the NFTs
+   * @param ownerAccountId the ID of the account that owns the NFTs
+   * @param spenderAccountId the ID of the account that is authorized to spend the NFTs
+   * @param spenderAccountKey the private key of the spender account
+   * @param toAccountId the ID of the account that should receive the NFTs
+   * @throws HieroException if the NFTs could not be transferred
+   */
+  void transferApprovedNfts(
+      @NonNull TokenId tokenId,
+      @NonNull List<Long> serialNumbers,
+      @NonNull AccountId ownerAccountId,
+      @NonNull AccountId spenderAccountId,
+      @NonNull PrivateKey spenderAccountKey,
+      @NonNull AccountId toAccountId)
+      throws HieroException;
+
+  /**
+   * Transfers NFTs on behalf of their owner to another account. The spender must have been granted
+   * an allowance for the NFTs by the owner. The spender pays the transaction fee and signs the
+   * transaction. At most 10 NFTs can be transferred in one transaction.
+   *
+   * @param tokenId the ID of the NFT type
+   * @param serialNumbers the serial numbers of the NFTs
+   * @param ownerAccountId the ID of the account that owns the NFTs
+   * @param spenderAccount the account that is authorized to spend the NFTs
+   * @param toAccountId the ID of the account that should receive the NFTs
+   * @throws HieroException if the NFTs could not be transferred
+   */
+  default void transferApprovedNfts(
+      @NonNull TokenId tokenId,
+      @NonNull List<Long> serialNumbers,
+      @NonNull AccountId ownerAccountId,
+      @NonNull Account spenderAccount,
+      @NonNull AccountId toAccountId)
+      throws HieroException {
+    Objects.requireNonNull(spenderAccount, "spenderAccount must not be null");
+    transferApprovedNfts(
+        tokenId,
+        serialNumbers,
+        ownerAccountId,
+        spenderAccount.accountId(),
+        spenderAccount.privateKey(),
+        toAccountId);
+  }
+
+  /**
+   * Transfers NFTs of one or more NFT types on behalf of their owner in a single transaction. Each
+   * NFT can be sent to a different account. The spender must have been granted an allowance for the
+   * NFTs by the owner. The spender pays the transaction fee and signs the transaction. At most 10
+   * NFTs can be transferred in one transaction.
+   *
+   * @param nftTransfers the receiving account of each NFT serial number, grouped by the ID of the
+   *     NFT type
+   * @param ownerAccountId the ID of the account that owns the NFTs
+   * @param spenderAccountId the ID of the account that is authorized to spend the NFTs
+   * @param spenderAccountKey the private key of the spender account
+   * @throws HieroException if the NFTs could not be transferred
+   */
+  void transferApprovedNfts(
+      @NonNull Map<TokenId, Map<Long, AccountId>> nftTransfers,
+      @NonNull AccountId ownerAccountId,
+      @NonNull AccountId spenderAccountId,
+      @NonNull PrivateKey spenderAccountKey)
+      throws HieroException;
+
+  /**
+   * Transfers NFTs of one or more NFT types on behalf of their owner in a single transaction. Each
+   * NFT can be sent to a different account. The spender must have been granted an allowance for the
+   * NFTs by the owner. The spender pays the transaction fee and signs the transaction. At most 10
+   * NFTs can be transferred in one transaction.
+   *
+   * @param nftTransfers the receiving account of each NFT serial number, grouped by the ID of the
+   *     NFT type
+   * @param ownerAccountId the ID of the account that owns the NFTs
+   * @param spenderAccount the account that is authorized to spend the NFTs
+   * @throws HieroException if the NFTs could not be transferred
+   */
+  default void transferApprovedNfts(
+      @NonNull Map<TokenId, Map<Long, AccountId>> nftTransfers,
+      @NonNull AccountId ownerAccountId,
+      @NonNull Account spenderAccount)
+      throws HieroException {
+    Objects.requireNonNull(spenderAccount, "spenderAccount must not be null");
+    transferApprovedNfts(
+        nftTransfers, ownerAccountId, spenderAccount.accountId(), spenderAccount.privateKey());
+  }
+
+  /**
    * Airdrops an NFT to another account. Unlike a standard transfer, if the receiver lacks available
    * auto-association slots the airdrop may become pending rather than failing.
    *
