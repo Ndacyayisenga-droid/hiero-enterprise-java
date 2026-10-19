@@ -34,6 +34,8 @@ public class MirrorNodeClientImpl extends AbstractMirrorNodeClient<JsonNode> {
 
   private final RestClient restClient;
 
+  private final RestClient networkRestClient;
+
   private final MirrorNodeRestClientImpl mirrorNodeRestClient;
 
   private final MirrorNodeJsonConverter<JsonNode> jsonConverter;
@@ -65,6 +67,11 @@ public class MirrorNodeClientImpl extends AbstractMirrorNodeClient<JsonNode> {
     jsonConverter = new MirrorNodeJsonConverterImpl();
     objectMapper = new ObjectMapper();
     restClient = restClientBuilder.build();
+    networkRestClient =
+        mirrorNodeJavaRestBaseUrl
+            .filter(s -> !s.isBlank())
+            .map(base -> restClientBuilder.clone().baseUrl(base).build())
+            .orElse(restClient);
   }
 
   @Override
@@ -217,7 +224,7 @@ public class MirrorNodeClientImpl extends AbstractMirrorNodeClient<JsonNode> {
     final Function<JsonNode, List<Node>> dataExtractionFunction =
         node -> jsonConverter.toNodes(node);
     return new RestBasedPage<>(
-        objectMapper, restClient.mutate().clone(), path, dataExtractionFunction);
+        objectMapper, networkRestClient.mutate().clone(), path, dataExtractionFunction);
   }
 
   @Override
@@ -229,7 +236,7 @@ public class MirrorNodeClientImpl extends AbstractMirrorNodeClient<JsonNode> {
         node -> jsonConverter.toNodes(node);
 
     return new RestBasedPage<>(
-            objectMapper, restClient.mutate().clone(), path, dataExtractionFunction)
+            objectMapper, networkRestClient.mutate().clone(), path, dataExtractionFunction)
         .getData().stream().findFirst();
   }
 }

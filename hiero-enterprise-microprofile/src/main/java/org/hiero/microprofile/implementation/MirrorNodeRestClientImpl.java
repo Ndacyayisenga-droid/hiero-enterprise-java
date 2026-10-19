@@ -58,4 +58,8 @@ public class MirrorNodeRestClientImpl implements MirrorNodeRestClient<JsonObject
   public String getTarget() {
     return target;
   }
+
+  public String getNetworkTarget() {
+    return networkTarget != null ? networkTarget : target;
+  }
 }

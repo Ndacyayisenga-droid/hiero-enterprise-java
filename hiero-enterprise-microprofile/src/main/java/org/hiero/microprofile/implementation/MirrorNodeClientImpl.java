@@ -182,7 +182,7 @@ public class MirrorNodeClientImpl extends AbstractMirrorNodeClient<JsonObject> {
     final String path = "/api/v1/network/nodes";
     final Function<JsonObject, List<Node>> dataExtractionFunction =
         node -> jsonConverter.toNodes(node);
-    return new RestBasedPage<>(restClient.getTarget(), dataExtractionFunction, path);
+    return new RestBasedPage<>(restClient.getNetworkTarget(), dataExtractionFunction, path);
   }
 
   @Override
@@ -193,7 +193,7 @@ public class MirrorNodeClientImpl extends AbstractMirrorNodeClient<JsonObject> {
     final Function<JsonObject, List<Node>> dataExtractionFunction =
         node -> jsonConverter.toNodes(node);
 
-    return new RestBasedPage<>(restClient.getTarget(), dataExtractionFunction, path)
+    return new RestBasedPage<>(restClient.getNetworkTarget(), dataExtractionFunction, path)
         .getData().stream().findFirst();
   }
 }
